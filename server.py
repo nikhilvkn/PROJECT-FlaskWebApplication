@@ -36,13 +36,32 @@ def service_lessthan():
 		return render_template('service_lessthan.html', data=full_data)
 
 
-@app.route('/service-check', methods=['POST','GET'])
-def service_check():
-	if request.method == 'POST':
-		datacenter = request.form['Datacenter']
-		environment = request.form['Environment']
-		Services = request.form['Services']
-		return 'Happy days'
+@app.route('/server-check', methods=['POST','GET'])
+def server_check():
+   if request.method == 'POST':
+      datacenter = request.form['Datacenter']
+      environment = request.form['Environment']
+      inception_service = request.form['Service']
+
+   if inception_service:
+      service_data = inception_service.split(',')
+      inception_request = Service(datacenter, environment)
+      all_service = inception_request.specific_service()
+      for content in service_data:
+         if content not in all_service:
+            return render_template('server-exception.html',data = f'''FileNotFound Exception: Service {content} not found in {environment} environment.
+   Please re-check service name''')
+            sys.exit()
+      inception_request = Server(datacenter, environment, service_data)
+      return render_template('service-check-result.html', data = inception_request.specific_service())
+
+   if datacenter:
+      if bool(datacenter) ^ bool(environment):
+         inception_request = Server(datacenter)
+         return render_template('service-check-result.html', data = inception_request.all_server())
+      else:
+         inception_request = Server(datacenter, environment)
+         return render_template('service-check-result.html', data = inception_request.specific_server())
 
 
 @app.route('/uploader', methods = ['GET', 'POST'])
