@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 home = str(Path.home())
 
+
 @app.route('/')
 def hello_world():
     return render_template('index.html')
@@ -17,23 +18,21 @@ def hello_world():
 def path(url_path):
     return render_template(url_path)
 
+
 @app.route('/submit_form', methods=['POST', 'GET'])
 def submit_form():
 	if request.method == 'POST':
 		data = request.form.to_dict()
-		#return jsonify([contents.to_json() for contents in data])
 		return json.dumps(data)
+
 
 @app.route('/service_lessthan', methods=['POST', 'GET'])
 def service_lessthan():
 	if request.method == 'POST':
 		datacenter = request.form['Datacenter']
 		environment = request.form['Environment']
-
 		d_data = inception.Service(datacenter)
 		full_data = d_data.all_service()
-		#return jsonify([contents.to_json() for contents in data])
-		#final_data = json.dumps(d_data)
 		return render_template('service_lessthan.html', data=full_data)
 
 
@@ -43,7 +42,6 @@ def service_check():
 		datacenter = request.form['Datacenter']
 		environment = request.form['Environment']
 		Services = request.form['Services']
-
 		return 'Happy days'
 
 
@@ -56,7 +54,6 @@ def upload_cifile():
       dataframe = dataframe.drop_duplicates()
       dataframe["Status"] = pd.Series([])
       dataframe.to_excel(f'{home}/Downloads/ci-approval.xlsx', index = False)
-
       return render_template('render-out.html')
 
       
@@ -71,7 +68,6 @@ def upload_crfile():
       df = df.drop_duplicates()
       df["Status"] = pd.Series([])
       df.to_excel(f'{home}/Downloads/changetask.xlsx', index = False)
-
       return render_template('render-out.html')
 
 
