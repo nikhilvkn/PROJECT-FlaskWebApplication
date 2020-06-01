@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request, jsonify
-import pandas as pd
-import json
-import inception
+from inception import Server, Service, InceptionTools
 from pathlib import Path
 
+import pandas as pd
+import datetime
+import json
+
+
+
 app = Flask(__name__)
-
-home = str(Path.home())
-
 
 @app.route('/')
 def hello_world():
@@ -63,7 +64,8 @@ def server_check():
          inception_request = Server(datacenter, environment)
          return render_template('service-check-result.html', data = inception_request.specific_server())
 
-
+home = str(Path.home())
+today = datetime.date.today()
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_cifile():
    if request.method == 'POST':
@@ -72,7 +74,7 @@ def upload_cifile():
       dataframe = dataframe[['Approval for','Short description']]
       dataframe = dataframe.drop_duplicates()
       dataframe["Status"] = pd.Series([])
-      dataframe.to_excel(f'{home}/Downloads/ci-approval.xlsx', index = False)
+      dataframe.to_excel(f'{home}/Downloads/ci-approval{today}.xlsx', index = False)
       return render_template('render-out.html')
 
       
@@ -86,7 +88,20 @@ def upload_crfile():
       df = df[['Change request','Subject','Scheduled start date','Scheduled end date']]
       df = df.drop_duplicates()
       df["Status"] = pd.Series([])
-      df.to_excel(f'{home}/Downloads/changetask.xlsx', index = False)
+      df.to_excel(f'{home}/Downloads/changetask{today}.xlsx', index = False)
       return render_template('render-out.html')
 
+
+@app.route('/service-check', methods = ['POST', 'GET'])
+def service():
+   if request.method == 'POST':
+      datacenter = request.form['Datacenter']
+      environment = request.form['Environment']
+   if datacenter:
+      if bool(datacenter) ^ bool(environment):
+         inception_request = Service(datacenter)
+         return render_template('service-check-result.html', data = inception_request.all_service())
+      else:
+         inception_request = Service(datacenter, environment)
+         return render_template('service-check-result.html', data = inception_request.specific_service())
 
