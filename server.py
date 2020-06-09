@@ -127,3 +127,34 @@ def service():
          inception_request = Service(datacenter, environment)
          return render_template('service-check-result.html', data = inception_request.specific_service())
 
+
+# Sometimes, it is needed to find out how many services
+# in a particular datacenter and environment is running
+# in less than 3 servers. This data can be used to scale
+# the number of nodes to maintain redundancy
+@app.route('/service_lessthan', methods=['POST', 'GET'])
+def service_lessthan():
+   if request.method == 'POST':
+      datacenter = request.form['Datacenter']
+      environment = request.form['Environment']
+      result = {}
+      service_list = []
+
+      data = InceptionTools(datacenter)
+      work_fulldata = data.dc_data()
+
+      for elements in work_fulldata['dynconfigMonitoringServerUrls']:
+         for values in elements['url']:
+            if elements['environment'] == environment:
+               service_list.append(values['container'])
+      count = Counter(service_list)
+      counter = 0
+      for key, value in count.items():
+         if value < 3:
+            counter += 1
+            result[key] = str(value)
+      return render_template('service-dict-result.html', data=result)
+      if counter == 0:
+         return render_template('server-exception.html', data='All services have 3 or more instances')
+
+
